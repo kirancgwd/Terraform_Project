@@ -1,0 +1,13 @@
+variable "cluster_name" { ... }
+variable "cluster_role_arn" { ... }
+variable "node_group_name" { ... }
+variable "node_role_arn" { ... }
+variable "subnet_ids" { ... }
+variable "security_group_ids" { ... }
+variable "desired_size" { ... }
+variable "max_size" { ... }
+variable "min_size" { ... }
+variable "instance_types" { ... }
+variable "capacity_type" { ... }
+variable "ssh_key_name" { ... }
+variable "source_security_group_ids" { ... }
