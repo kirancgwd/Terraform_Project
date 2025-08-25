@@ -1,30 +1,32 @@
-resource "aws_eks_cluster" "eks" {
-  name     = var.cluster_name
-  role_arn = var.cluster_role_arn
+module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "20.8.4"
 
-  vpc_config {
-    subnet_ids         = var.subnet_ids
-    security_group_ids = var.security_group_ids
-  }
-}
-
-resource "aws_eks_node_group" "node_group" {
-  cluster_name    = aws_eks_cluster.eks.name
-  node_group_name = var.node_group_name
-  node_role_arn   = var.node_role_arn
+  cluster_name    = var.cluster_name
+  cluster_version = var.cluster_version
   subnet_ids      = var.subnet_ids
+  vpc_id          = var.vpc_id
 
-  scaling_config {
-    desired_size = var.desired_size
-    max_size     = var.max_size
-    min_size     = var.min_size
+  cluster_endpoint_public_access = true
+
+  eks_managed_node_groups = {
+    default = {
+      name           = "default-ng"
+      instance_types = ["t3.medium"]
+      desired_capacity = 2
+      max_capacity     = 3
+      min_capacity     = 1
+    }
   }
 
-  instance_types = var.instance_types
-  capacity_type  = var.capacity_type
+  cluster_addons = {
+    coredns    = { most_recent = true }
+    kube-proxy = { most_recent = true }
+    vpc-cni    = { most_recent = true }
+  }
 
-  remote_access {
-    ec2_ssh_key = var.ssh_key_name
-    source_security_group_ids = var.source_security_group_ids
+  tags = {
+    Name        = var.cluster_name
+    Environment = var.name
   }
 }
