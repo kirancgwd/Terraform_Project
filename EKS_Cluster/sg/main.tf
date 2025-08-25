@@ -1,25 +1,12 @@
-resource "aws_security_group" "cluster_sg" {
-  vpc_id = var.vpc_id
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.name_prefix}-cluster-sg"
-  }
-}
-
-resource "aws_security_group" "node_sg" {
-  vpc_id = var.vpc_id
+resource "aws_security_group" "eks" {
+  name        = var.name
+  description = "Security group for EKS"
+  vpc_id      = var.vpc_id
 
   ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -31,6 +18,6 @@ resource "aws_security_group" "node_sg" {
   }
 
   tags = {
-    Name = "${var.name_prefix}-node-sg"
+    Name = var.name
   }
 }
