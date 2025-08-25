@@ -1,46 +1,30 @@
-resource "aws_vpc" "vpc" {
-  cidr_block = var.cidr_block
+resource "aws_eks_cluster" "eks" {
+  name     = var.cluster_name
+  role_arn = var.cluster_role_arn
 
-  tags = {
-    Name = var.vpc_name
+  vpc_config {
+    subnet_ids         = var.subnet_ids
+    security_group_ids = var.security_group_ids
   }
 }
 
-resource "aws_subnet" "subnet" {
-  count                   = length(var.availability_zones)
-  vpc_id                  = aws_vpc.vpc.id
-  cidr_block              = cidrsubnet(aws_vpc.vpc.cidr_block, 8, count.index)
-  availability_zone       = var.availability_zones[count.index]
-  map_public_ip_on_launch = true
+resource "aws_eks_node_group" "node_group" {
+  cluster_name    = aws_eks_cluster.eks.name
+  node_group_name = var.node_group_name
+  node_role_arn   = var.node_role_arn
+  subnet_ids      = var.subnet_ids
 
-  tags = {
-    Name = "${var.vpc_name}-subnet-${count.index}"
-  }
-}
-
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.vpc.id
-
-  tags = {
-    Name = "${var.vpc_name}-igw"
-  }
-}
-
-resource "aws_route_table" "route_table" {
-  vpc_id = aws_vpc.vpc.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id
+  scaling_config {
+    desired_size = var.desired_size
+    max_size     = var.max_size
+    min_size     = var.min_size
   }
 
-  tags = {
-    Name = "${var.vpc_name}-route-table"
-  }
-}
+  instance_types = var.instance_types
+  capacity_type  = var.capacity_type
 
-resource "aws_route_table_association" "association" {
-  count          = length(aws_subnet.subnet)
-  subnet_id      = aws_subnet.subnet[count.index].id
-  route_table_id = aws_route_table.route_table.id
+  remote_access {
+    ec2_ssh_key = var.ssh_key_name
+    source_security_group_ids = var.source_security_group_ids
+  }
 }
